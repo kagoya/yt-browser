@@ -1,10 +1,12 @@
 /* PyodideをUIスレッドから分離する。動画取得は行わず、メタデータ解析だけを試す。 */
+const BUILD_ID='20261020-cachefix-1';
 const say=message=>postMessage({kind:'log',message});
 const step=(name,value)=>postMessage({kind:'step',step:name,value});
 let running=false;
 onmessage=async({data})=>{
  if(running)return;running=true;const start=performance.now();
  try{
+  say('Worker版: '+BUILD_ID+' / '+self.location.href);
   say('Pyodide JavaScriptローダーを取得します');
   importScripts('https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js');
   const py=await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.28.3/full/'});
