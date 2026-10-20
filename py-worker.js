@@ -1,5 +1,5 @@
 /* PyodideをUIスレッドから分離する。動画取得は行わず、メタデータ解析だけを試す。 */
-const BUILD_ID='20261020-cachefix-1';
+const BUILD_ID='20261020-pyodide-http-2';
 const say=message=>postMessage({kind:'log',message});
 const step=(name,value)=>postMessage({kind:'step',step:name,value});
 let running=false;
@@ -17,6 +17,16 @@ onmessage=async({data})=>{
   say('micropipを読み込み、yt-dlpのインストールを試します');
   await py.loadPackage('micropip');
   await py.runPythonAsync("import micropip\nawait micropip.install('yt-dlp')");
+  say('pyodide-httpをインストールしてブラウザFetch互換パッチを適用します');
+  try {
+    await py.runPythonAsync("await micropip.install('pyodide-http')");
+    await py.runPythonAsync("import pyodide_http\npyodide_http.patch_all()");
+    say('pyodide-http patch_all 成功（CORS制約は残ります）');
+  } catch(patchError) {
+    say('pyodide-http導入失敗: '+(patchError?.stack||patchError?.message||String(patchError)).slice(0,3500));
+    step('call','HTTPパッチ失敗');
+    postMessage({kind:'done',ok:false});return;
+  }
   py.runPython('import yt_dlp; import importlib.metadata as m');
   say('yt-dlp import成功：'+py.runPython("m.version('yt-dlp')"));step('call','yt-dlp import成功');
   if(!data.network){say('ネットワーク解析なし：パッケージの実行環境確認だけで終了');step('result','スキップ');postMessage({kind:'done',ok:true});return}
