@@ -9,6 +9,9 @@ onmessage=async({data})=>{
   importScripts('https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js');
   const py=await loadPyodide({indexURL:'https://cdn.jsdelivr.net/pyodide/v0.28.3/full/'});
   step('load','Pyodide成功');say('Pyodideロード成功：'+((performance.now()-start)/1000).toFixed(2)+' 秒');
+  say('Python標準ライブラリ ssl を読み込みます');
+  await py.loadPackage('ssl');
+  say('sslロード成功');
   say('micropipを読み込み、yt-dlpのインストールを試します');
   await py.loadPackage('micropip');
   await py.runPythonAsync("import micropip\nawait micropip.install('yt-dlp')");
